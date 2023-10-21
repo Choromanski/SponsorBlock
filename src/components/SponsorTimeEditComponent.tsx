@@ -291,7 +291,7 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
                 {(!isNaN(segment[1]) && sponsorTime.actionType != ActionType.Full) ? (
                     <span id={"sponsorTimeInspectButton" + this.idSuffix}
                         className="sponsorTimeEditButton"
-                        onClick={this.inspectTime.bind(this)}>
+                        onClick={() => this.inspectTime(false)}>
                         {chrome.i18n.getMessage("inspect")}
                     </span>
                 ): ""}
@@ -299,7 +299,7 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
                 {(!isNaN(segment[1]) && ![ActionType.Poi, ActionType.Full].includes(sponsorTime.actionType)) ? (
                     <span id={"sponsorTimePreviewEndButton" + this.idSuffix}
                         className="sponsorTimeEditButton"
-                        onClick={(e) => this.previewTime(e.ctrlKey, e.shiftKey, true)}>
+                        onClick={() => this.inspectTime(true)}>
                         {chrome.i18n.getMessage("End")}
                     </span>
                 ): ""}
@@ -637,7 +637,7 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
             : CompileConfig.categorySupport[category]?.[0] ?? ActionType.Skip
     }
 
-    previewTime(ctrlPressed = false, shiftPressed = false, skipToEndTime = false): void {
+    previewTime(ctrlPressed = false, shiftPressed = false): void {
         const sponsorTimes = this.props.contentContainer().sponsorTimesSubmitting;
         const index = this.props.index;
         let seekTime = 2;
@@ -648,18 +648,18 @@ class SponsorTimeEditComponent extends React.Component<SponsorTimeEditProps, Spo
         const endTime = sponsorTimes[index].segment[1];
 
         // If segment starts at 0:00, start playback at the end of the segment
-        const skipTime = (startTime === 0 || skipToEndTime) ? endTime : (startTime - (seekTime * this.props.contentContainer().v.playbackRate));
+        const skipTime = (startTime === 0) ? endTime : (startTime - (seekTime * this.props.contentContainer().v.playbackRate));
 
-        this.props.contentContainer().previewTime(skipTime, !skipToEndTime);
+        this.props.contentContainer().previewTime(skipTime, true);
     }
 
-    inspectTime(): void {
+    inspectTime(inspectEndTime = false): void {
         const sponsorTimes = this.props.contentContainer().sponsorTimesSubmitting;
         const index = this.props.index;
 
-        const skipTime = sponsorTimes[index].segment[0];
+        const skipTime = (inspectEndTime) ? sponsorTimes[index].segment[1] : sponsorTimes[index].segment[0] + 0.0001;
 
-        this.props.contentContainer().previewTime(skipTime + 0.0001, false);
+        this.props.contentContainer().previewTime(skipTime, false);
     }
 
     deleteTime(): void {
